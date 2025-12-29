@@ -11,12 +11,17 @@ logger = logging.getLogger(__name__)
 class QAService:
     def __init__(self):
         # 设置百炼平台API Key
-        self.api_key = os.getenv("DASHSCOPE_API_KEY", "sk-16ef02df3d9a4605b096b84c5fe327e5")
+        self.api_key = os.getenv("DASHSCOPE_API_KEY")
+        if not self.api_key:
+            raise ValueError("DASHSCOPE_API_KEY环境变量未设置，请在.env文件中配置")
         dashscope.api_key = self.api_key
         
         # 延迟初始化vector_store，避免启动时的段错误
         self._vector_store = None
-        self.model = "qwen-turbo"  # 使用通义千问模型
+        # 从环境变量读取模型配置
+        self.model = os.getenv("MODEL_NAME", "qwen-turbo")
+        self.temperature = float(os.getenv("TEMPERATURE", "0.7"))
+        self.max_tokens = int(os.getenv("MAX_TOKENS", "2000"))
     
     @property
     def vector_store(self):
@@ -79,8 +84,8 @@ class QAService:
             response = Generation.call(
                 model=self.model,
                 messages=messages,
-                temperature=0.7,
-                max_tokens=2000,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
                 result_format='message'
             )
             
@@ -134,8 +139,8 @@ class QAService:
                 responses = Generation.call(
                     model=self.model,
                     messages=messages,
-                    temperature=0.7,
-                    max_tokens=2000,
+                    temperature=self.temperature,
+                    max_tokens=self.max_tokens,
                     stream=True,
                     result_format='message'  # 使用message格式
                 )

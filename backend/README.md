@@ -42,11 +42,33 @@ pip install -r requirements.txt
 ## 配置
 
 1. 复制 `.env.example` 为 `.env`
-2. 在 `.env` 中配置百炼平台API Key
+   ```bash
+   cp .env.example .env
+   ```
 
-```env
-DASHSCOPE_API_KEY=sk-16ef02df3d9a4605b096b84c5fe327e5
-```
+2. 编辑 `.env` 文件，配置必要的参数：
+
+**必需配置：**
+- `DASHSCOPE_API_KEY`: 百炼平台API Key（必填）
+  - 获取地址：https://dashscope.console.aliyun.com/
+
+**可选配置：**
+- `MODEL_NAME`: 模型名称（默认：qwen-turbo）
+  - 可选值：qwen-turbo, qwen-plus, qwen-max 等
+- `TEMPERATURE`: API调用温度参数（默认：0.7）
+- `MAX_TOKENS`: 最大token数（默认：2000）
+- `FAISS_DB_PATH`: 向量数据库存储路径（默认：./faiss_db）
+- `UPLOAD_DIR`: 文件上传存储路径（默认：./uploads）
+- `CHUNK_SIZE`: 文本块大小（默认：1000）
+- `CHUNK_OVERLAP`: 文本块重叠大小（默认：200）
+- `PORT`: 服务端口号（默认：8000）
+- `HOST`: 服务主机地址（默认：0.0.0.0）
+- `CORS_ORIGINS`: CORS允许的源地址（默认：*）
+  - 多个地址用逗号分隔，例如：`http://localhost:3000,http://localhost:5173`
+- `LOG_LEVEL`: 日志级别（默认：INFO）
+  - 可选值：DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+**注意**：`.env` 文件包含敏感信息，已被 `.gitignore` 忽略，不会提交到代码仓库。
 
 ## 运行服务
 
@@ -178,24 +200,22 @@ while (true) {
 ## 技术栈
 
 - **FastAPI**: Web框架
-- **ChromaDB**: 向量数据库
+- **FAISS**: 向量数据库
 - **DashScope**: 百炼平台SDK
 - **LangChain**: 文本处理
 - **Sentence Transformers**: 文本向量化
 
 ## 注意事项
 
-1. **Python版本要求**：建议使用 **Python 3.11 或 3.12**。Python 3.13 可能与 ChromaDB 存在兼容性问题，可能导致段错误（Segmentation Fault）。
-2. 首次运行会自动创建向量数据库目录
-3. 上传的文件会保存在 `uploads/` 目录
-4. 向量数据库存储在 `chroma_db/` 目录
+1. **Python版本要求**：建议使用 **Python 3.8+**
+2. **环境变量配置**：首次运行前必须配置 `.env` 文件，特别是 `DASHSCOPE_API_KEY`
+3. 首次运行会自动创建向量数据库目录和上传目录
+4. 上传的文件会保存在配置的 `UPLOAD_DIR` 目录（默认：`uploads/`）
+5. 向量数据库存储在配置的 `FAISS_DB_PATH` 目录（默认：`faiss_db/`）
 
-## 已知问题
+## 故障排查
 
-### Python 3.13 兼容性问题
-
-如果使用 Python 3.13 遇到段错误，建议：
-1. 降级到 Python 3.11 或 3.12
-2. 或者删除 `chroma_db` 目录后重试
-3. 如果问题持续，可以考虑使用其他向量数据库（如 FAISS）
+1. **API Key未配置错误**：确保 `.env` 文件中已正确配置 `DASHSCOPE_API_KEY`
+2. **端口被占用**：修改 `.env` 文件中的 `PORT` 配置，或使用命令行参数指定端口：`python main.py 8001`
+3. **CORS错误**：在生产环境中，修改 `.env` 文件中的 `CORS_ORIGINS`，设置为实际的前端地址
 

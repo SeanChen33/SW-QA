@@ -75,9 +75,11 @@ class TextSplitter:
 
 class FileProcessor:
     def __init__(self):
+        chunk_size = int(os.getenv("CHUNK_SIZE", "1000"))
+        chunk_overlap = int(os.getenv("CHUNK_OVERLAP", "200"))
         self.text_splitter = TextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap
         )
     
     async def process_file(self, file_path: str, filename: str) -> List[str]:

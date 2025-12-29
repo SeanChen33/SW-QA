@@ -36,9 +36,9 @@ def compute_embedding(text: str) -> np.ndarray:
 class VectorStore:
     def __init__(self):
         """初始化FAISS向量存储"""
-        self.base_path = "./faiss_db"
+        self.base_path = os.getenv("FAISS_DB_PATH", "./faiss_db")
         os.makedirs(self.base_path, exist_ok=True)
-        logger.info("VectorStore初始化完成（使用FAISS）")
+        logger.info(f"VectorStore初始化完成（使用FAISS），存储路径: {self.base_path}")
     
     def _get_collection_path(self, company_id: str) -> str:
         """获取集合的存储路径"""
