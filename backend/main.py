@@ -10,7 +10,8 @@ import json
 import logging
 
 # 配置日志
-logging.basicConfig(level=logging.INFO)
+log_level = os.getenv("LOG_LEVEL", "INFO")
+logging.basicConfig(level=getattr(logging, log_level.upper(), logging.INFO))
 logger = logging.getLogger(__name__)
 
 from services.vector_store import VectorStore
@@ -22,9 +23,15 @@ load_dotenv()
 app = FastAPI(title="企业Q&A Agent API")
 
 # CORS配置
+cors_origins = os.getenv("CORS_ORIGINS", "*")
+if cors_origins == "*":
+    allow_origins = ["*"]
+else:
+    allow_origins = [origin.strip() for origin in cors_origins.split(",")]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -86,7 +93,8 @@ async def upload_document(
         logger.info(f"收到文件上传请求: filename={file.filename}, company_id={company_id}, content_type={file.content_type}")
         
         # 保存上传的文件
-        upload_dir = f"uploads/{company_id}"
+        base_upload_dir = os.getenv("UPLOAD_DIR", "./uploads")
+        upload_dir = os.path.join(base_upload_dir, company_id)
         os.makedirs(upload_dir, exist_ok=True)
         
         file_path = os.path.join(upload_dir, file.filename)
@@ -213,7 +221,8 @@ async def delete_document(company_id: str, file_id: str):
 
 if __name__ == "__main__":
     import sys
-    # 允许通过命令行参数指定端口，默认8000
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8000
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    # 允许通过命令行参数指定端口，否则从环境变量读取，默认8000
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else int(os.getenv("PORT", "8000"))
+    host = os.getenv("HOST", "0.0.0.0")
+    uvicorn.run(app, host=host, port=port)
 
